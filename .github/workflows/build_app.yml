@@ -1,0 +1,26 @@
+name: Python application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v3
+      with:
+        python-version: "3.8.10"
+    - run: python -m venv env
+    - run: env/Scripts/Activate.ps1
+    - run: pip install -r requirements.txt pyinstaller
+    - run: pyinstaller -F .\ggst_mod_helper.pyw --add-data "env/Lib/site-packages/PySide6/plugins;PySide6/plugins/" --add-data "src/hooks/;hooks/" --add-data "src/uproject.txt;hooks/"
+    - uses: actions/upload-artifact@v2
+      with:
+        path: dist/*
