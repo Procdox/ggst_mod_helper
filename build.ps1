@@ -1,0 +1,1 @@
+pyinstaller -F .\ggst_mod_helper.pyw --add-data "env/Lib/site-packages/PySide6/plugins;PySide6/plugins/" --add-data "src/hooks/;hooks/" --add-data "src/uproject.txt;hooks/"

@@ -5,7 +5,7 @@ import shutil
 from .ConfigView import ConfigWidget
 from .Widgets import PathWidget, TextWidget
 from .UModelDriver import PackageManager
-from .Constants import UNREAL_HOOK, BLENDER_HOOK
+from .Constants import UNREAL_HOOK, BLENDER_HOOK, UNREAL_TEMPLATE
 from .Process import runProcess
 
 
@@ -77,8 +77,8 @@ class FastExportSession(QtCore.QRunnable):
     if ue_proj.exists(): return
     
     ue_proj.parent.mkdir(exist_ok=True)
-    src = Path(__file__).parent.joinpath("uproject.txt")
-    shutil.copy(src, ue_proj)
+    src = UNREAL_TEMPLATE
+    shutil.copy(UNREAL_TEMPLATE, ue_proj)
 
   def importUnreal(self, fbx_src:Path):
     ue_content = self.config.fastUnrealContent()

@@ -4,14 +4,14 @@ import addon_utils
 from pathlib import Path
 from typing import List
 
-#for mod in addon_utils.modules():
-#  print(mod) #.bl_infomod.bl_info.get('version', (-1, -1, -1)))
+# These need to match Constants, but packaging makes that annoying
+DUMP_SUBDIR="dump/"
+FAST_BLENDER_OUT="Blender_Fast_Build"
+INFO_SFX="_details.txt"
 
 try:
   print("Starting Python Export Hook")
   # we have to insert our file into the path to include other src files
-  sys.path.insert(1, Path(__file__).parent.parent.as_posix())
-  import Constants
   
   # arg parsing
   argv = sys.argv
@@ -22,7 +22,7 @@ try:
   asset_name = asset_path.split("/")[-1]
 
   # load dumped info
-  info_file = work_dir.joinpath(f"{Constants.DUMP_SUBDIR}{asset_path}{Constants.INFO_SFX}")
+  info_file = work_dir.joinpath(f"{DUMP_SUBDIR}{asset_path}{INFO_SFX}")
   slot_order = [dirty.strip() for dirty in open(info_file,'r').readlines()[0].split(":")[1].split(", ")]
 
   target_armature = None
@@ -65,7 +65,7 @@ try:
   
   addon_utils.enable("io_scene_fbx", default_set=True, persistent=False, handle_error=None)
 
-  export_path = work_dir.joinpath(Constants.FAST_BLENDER_OUT)
+  export_path = work_dir.joinpath(FAST_BLENDER_OUT)
   export_path.mkdir(exist_ok=True)
   export_path = export_path.joinpath(f"{asset_name}.fbx")
   bpy.ops.export_scene.fbx(filepath=export_path.as_posix(), check_existing=False, use_selection=True, bake_anim=False)
