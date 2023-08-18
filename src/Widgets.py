@@ -1,13 +1,10 @@
 from PySide6 import QtCore, QtWidgets, QtGui
-from typing import Optional, Callable, List, Union, Tuple, NamedTuple, Dict, Set, Tuple, TypeVar, Generic
+from typing import Optional, Callable, Union
 from pathlib import Path
-
 import subprocess
 
 ERROR_LOG = Path(".").joinpath("error.log")
 ERROR_DELIM = "\n--------------------------------------------------\n"
-
-
 
 def cleanSTD(dirty:Union[str,bytes]):
   if isinstance(dirty,bytes):

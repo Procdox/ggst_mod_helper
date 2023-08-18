@@ -1,10 +1,9 @@
-from PySide6 import QtCore, QtWidgets, QtGui
-from typing import Optional, Callable, List, Union, Tuple, NamedTuple, Dict, Set
+from PySide6 import QtCore, QtWidgets
+from typing import List, Dict
 from pathlib import Path
-import subprocess
 
-from .Widgets import showWarning, dumpError, CheckBox
 from . import Constants
+from .Widgets import showWarning, CheckBox
 from .ConfigView import ConfigWidget
 from .UModelDriver import PackageManager, CharManifest
 from .Process import runProcess

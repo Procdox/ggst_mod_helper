@@ -1,11 +1,9 @@
-from typing import Optional, Callable, List, Union, Tuple, NamedTuple, Dict, Set, Tuple, TypeVar, Generic
-
-import subprocess
+from typing import Optional, List, Union, TypeVar, Generic
+import subprocess, logging
 
 T = TypeVar('T')
 Buffer = Union[str,bytes]
 
-import logging
 logger = logging.getLogger(__name__)
 
 class ReturnCode(Generic[T]):

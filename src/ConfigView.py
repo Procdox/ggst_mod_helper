@@ -1,5 +1,4 @@
-from PySide6 import QtCore, QtWidgets, QtGui
-from typing import Optional, Callable, List, Union, Tuple, NamedTuple, Dict, Set
+from PySide6 import QtWidgets
 from pathlib import Path
 
 from .Widgets import PathWidget, TextWidget, showWarning

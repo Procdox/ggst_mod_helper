@@ -1,10 +1,13 @@
 from PySide6 import QtCore
-from .ConfigView import ConfigWidget
 from pathlib import Path
+import shutil
+
+from .ConfigView import ConfigWidget
 from .Widgets import PathWidget, TextWidget
 from .UModelDriver import PackageManager
 from .Constants import UNREAL_HOOK, BLENDER_HOOK
 from .Process import runProcess
+
 
 UASSET_SFX=".uasset"
 
@@ -70,6 +73,14 @@ class FastExportSession(QtCore.QRunnable):
       raise Exception(f"Blender FBX Export Failed. Blender appeared to run correctly, but the exported FBX was not found")
     
     return fbx_src
+  
+  def setupUnreal(self):
+    ue_proj = self.config.fastUnrealUproj()
+    if ue_proj.exists(): return
+    
+    ue_proj.parent.mkdir(exist_ok=True)
+    src = Path(__file__).parent.joinpath("uproject.txt")
+    shutil.copy(src, ue_proj)
 
   def importUnreal(self, fbx_src:Path):
     ue_content = self.config.fastUnrealContent()
@@ -171,12 +182,11 @@ class FastExportSession(QtCore.QRunnable):
       self.signals.error.emit("Bad Target. Failed to dump info for the target asset, it may not exist.")
       return
 
-    
-    
     try:
       self.signals.progress.emit(1, "Exporting Blender Project to FBX")
       fbx_src = self.exportBlender(self.blender_target)
       self.signals.progress.emit(2, "Importing FBX into Unreal Engine")
+      self.setupUnreal()
       self.importUnreal(fbx_src)
       self.signals.progress.emit(3, "Cooking Unreal project")
       uasset_src, uexp_src = self.cookUnreal()
