@@ -7,7 +7,9 @@ on:
     branches: [ "main" ]
 
 permissions:
-  contents: read
+  contents: write
+  id-token: write
+  issues: write
 
 jobs:
   build:
@@ -34,7 +36,8 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: Release ${{ github.ref }}
-    - uses: actions/upload-release-asset@v1
+    - name: push exe to release
+      uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
