@@ -1,4 +1,4 @@
-name: Python application
+name: Build Release
 
 on:
   push:
@@ -13,20 +13,32 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v3
+    - name: checkout code
+      uses: actions/checkout@v3
+    - name: setup python
+      uses: actions/setup-python@v3
       with:
         python-version: "3.8.10"
-    - run: |
+    - name: build
+      run: |
         pip install --upgrade pip
         python -m venv env
         env/Scripts/Activate.ps1
         pip install -r requirements.txt pyinstaller
         pyinstaller -F .\ggst_mod_helper.pyw --add-data "env/Lib/site-packages/PySide6/plugins;PySide6/plugins/" --add-data "src/hooks/;hooks/" --add-data "src/uproject.txt;hooks/"
-    - uses: actions/upload-artifact@v2
-      with:
-        path: dist/*
-    - run: |
-        gh release create v1.0.0 dist/ggst_mod_helper.exe
+    - name: release
+      id: create_release
+      uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ github.TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+    - uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: dist/ggst_mod_helper.exe
+        asset_name: ggst_mod_helper.exe
+        asset_content_type: application/vnd.microsoft.portable-executable
