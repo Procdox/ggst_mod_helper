@@ -10,9 +10,9 @@ This tool requires
 - Unreal 4.25 (modified preferred)
 
 With all this, installation can be done by
-1: installing Python (tested with 3.8.10)
-2: python -m venv env
-3: ./env/Scripts/python.exe -m pip install -r requirements.txt
+1. installing Python (tested with 3.8.10)
+2. python -m venv env
+3. ./env/Scripts/python.exe -m pip install -r requirements.txt
 
 Then launched with 
 - ./env/Scripts/python.exe ggst_mod_helper.py

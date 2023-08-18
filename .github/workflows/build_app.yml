@@ -26,3 +26,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         path: dist/*
+    - run: |
+        gh release create v1.0.0 dist/ggst_mod_helper.exe
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
