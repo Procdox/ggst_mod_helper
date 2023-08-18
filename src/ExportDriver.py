@@ -92,7 +92,7 @@ class FastExportSession(QtCore.QRunnable):
     options = ' '.join([ 
       self.config.unreal().as_posix(), 
       self.config.fastUnrealUproj().as_posix(), 
-      "-stdout", 
+      "-stdout", "-nullrhi", "-unattended", "-nopause", "-nosplash", 
       f'-ExecutePythonScript="{UNREAL_HOOK} {fbx_src.as_posix()} {self.asset_stub}"' 
     ])
     unreal_result = runProcess(options, True)
@@ -116,7 +116,7 @@ class FastExportSession(QtCore.QRunnable):
     options = [ 
       self.config.unreal().as_posix(), 
       self.config.fastUnrealUproj().as_posix(), 
-      "-run=cook", "-targetplatform=WindowsNoEditor" 
+      "-run=cook", "-nullrhi", "-unattended", "-nopause", "-silent", "-nosplash", "-targetplatform=WindowsNoEditor" 
     ]
 
     cook_result = runProcess(options)
