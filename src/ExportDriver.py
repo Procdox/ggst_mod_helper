@@ -129,8 +129,8 @@ class FastExportSession(QtCore.QRunnable):
     return uasset_src, uexp_src
 
   def pak(self, uasset_src:Path, uexp_src:Path, mod_name:str):
-    mod_dir = self.config.pak().joinpath(mod_name)
-    pak_src = self.config.pak().joinpath(f"{mod_name}.pak")
+    mod_dir = self.config.work().joinpath("paks",mod_name)
+    pak_src = self.config.work().joinpath("paks", f"{mod_name}.pak")
     if Path(pak_src).exists(): Path(pak_src).unlink()
 
     build_home = mod_dir.joinpath("RED/Content").joinpath(self.asset_stub)
