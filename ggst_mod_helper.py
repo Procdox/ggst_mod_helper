@@ -42,7 +42,6 @@ class MainWindow(QtWidgets.QMainWindow):
     self.setCentralWidget(top)
 
   def loadSettings(self, settings):
-    print(settings.fileName())
     for _, widget in self.tabs:
       widget.loadSettings(settings)
 

@@ -14,12 +14,10 @@ UASSET_SFX=".uasset"
 def rm_tree(pth:Path):
   for child in pth.glob('*'):
     if child.is_file():
-      #child.unlink()
-      print(child)
+      child.unlink()
     else:
       rm_tree(child)
-  #pth.rmdir()
-  print(pth)
+  pth.rmdir()
 
 def moveReplace(src:Path,dest:Path):
   dest = dest.joinpath(src.name)
