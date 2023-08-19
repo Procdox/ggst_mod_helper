@@ -8,6 +8,7 @@ from . import Constants
 GGST_EXE="GGST.exe"
 UMODEL_EXE="umodel.exe"
 NOESIS_EXE="Noesis.exe"
+UE4EXP_EXE="Ue4Export.exe"
 BLENDER_EXE="blender.exe"
 UNREAL_EXE="UE4Editor-Cmd.exe"
 UE_PACK_EXE="UnrealPak.exe"
@@ -46,6 +47,7 @@ class ConfigWidget(QtWidgets.QWidget):
     self.ggst_field = PathWidget("GGST_Install", GGST_EXE, DEFAULT_GGST_PATH, validateGGST)
     self.umodel_field = PathWidget("UModel_Install", UMODEL_EXE)
     self.noesis_field = PathWidget("Noesis_Install", NOESIS_EXE)
+    self.ue4exp_field = PathWidget("UE4Export_Install", UE4EXP_EXE)
     self.blender_field = PathWidget("Blender_Install", BLENDER_EXE, DEFAULT_BLENDER_PATH, validateBlender)
     self.unreal_field = PathWidget("Unreal_Install", UNREAL_EXE, validator=validateUnreal)
     self.packer_field = PathWidget("UE_Pack_Install", UE_PACK_EXE)
@@ -57,6 +59,7 @@ class ConfigWidget(QtWidgets.QWidget):
     layout.addWidget(self.ggst_field)
     layout.addWidget(self.umodel_field)
     layout.addWidget(self.noesis_field)
+    layout.addWidget(self.ue4exp_field)
     layout.addWidget(self.blender_field)
     layout.addWidget(self.unreal_field)
     layout.addWidget(self.packer_field)
@@ -68,6 +71,7 @@ class ConfigWidget(QtWidgets.QWidget):
     safe = self.ggst_field.updateValue() and safe
     safe = self.umodel_field.updateValue() and safe
     safe = self.noesis_field.updateValue() and safe
+    safe = self.ue4exp_field.updateValue() and safe
     safe = self.blender_field.updateValue() and safe
     safe = self.unreal_field.updateValue() and safe
     safe = self.packer_field.updateValue() and safe
@@ -82,6 +86,8 @@ class ConfigWidget(QtWidgets.QWidget):
     return self.umodel_field.value
   def noesis(self) -> Path:
     return self.noesis_field.value
+  def ue4exp(self) -> Path:
+    return self.ue4exp_field.value
   def blender(self) -> Path:
     return self.blender_field.value
   def unreal(self) -> Path:
@@ -111,6 +117,7 @@ class ConfigWidget(QtWidgets.QWidget):
     self.ggst_field.loadSettings(settings)
     self.umodel_field.loadSettings(settings)
     self.noesis_field.loadSettings(settings)
+    self.ue4exp_field.loadSettings(settings)
     self.blender_field.loadSettings(settings)
     self.unreal_field.loadSettings(settings)
     self.packer_field.loadSettings(settings)
@@ -121,6 +128,7 @@ class ConfigWidget(QtWidgets.QWidget):
     self.ggst_field.saveSettings(settings)
     self.umodel_field.saveSettings(settings)
     self.noesis_field.saveSettings(settings)
+    self.ue4exp_field.saveSettings(settings)
     self.blender_field.saveSettings(settings)
     self.unreal_field.saveSettings(settings)
     self.packer_field.saveSettings(settings)

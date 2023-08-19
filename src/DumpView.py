@@ -216,9 +216,6 @@ class DumpWidget(QtWidgets.QWidget):
       stub_name = dump_dir.joinpath("/".join(target.file.split("/")[3:])).as_posix()[:-7]
       psk_path = stub_name + ".psk"
       fbx_path = stub_name + ".fbx"
-      info_path = stub_name + "_details.txt"
-      with open(info_path,'w') as info_file:
-        info_file.write( "MaterialSlots: " +", ".join(slot_info) )
 
       options = [noesis_path.as_posix(), "?cmode", psk_path, fbx_path, "-fbxnewexport", "-rotate 90 0 0"]
       result = runProcess(options)

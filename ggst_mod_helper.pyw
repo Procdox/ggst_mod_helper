@@ -7,6 +7,7 @@ from typing import Optional, Callable, List, Union, Tuple, NamedTuple, Dict, Set
 from src.ConfigView import ConfigWidget
 from src.DumpView import DumpWidget
 from src.BlenderView import BlenderWidget
+from src.DebugView import DebugWidget
 
 from src.Constants import WINDOW_TITLE
 
@@ -35,6 +36,9 @@ class MainWindow(QtWidgets.QMainWindow):
       ("Dump From Game", DumpWidget(config)),
       ("Fast Package Blender", BlenderWidget(config)),
     ]
+
+    if False:
+      self.tabs.append(("Debug", DebugWidget(config)))
 
     top = QtWidgets.QTabWidget()
     for title, widget in self.tabs:

@@ -23,7 +23,8 @@ try:
 
   # load dumped info
   info_file = work_dir.joinpath(f"{DUMP_SUBDIR}{asset_path}{INFO_SFX}")
-  slot_order = [dirty.strip() for dirty in open(info_file,'r').readlines()[0].split(":")[1].split(", ")]
+
+  slot_order = [dirty.strip() for dirty in open(info_file,'r').readlines()[0].split(",")]
 
   target_armature = None
   for armature in bpy.data.armatures:
@@ -60,8 +61,12 @@ try:
   for obj in bpy.context.selected_objects:
     obj.select_set(False)
 
+  
+  mesh_list[0].hide_set(False)
+  mesh_list[0].parent.hide_set(False)
   mesh_list[0].select_set(True)
   mesh_list[0].parent.select_set(True)
+  
   
   addon_utils.enable("io_scene_fbx", default_set=True, persistent=False, handle_error=None)
 

@@ -86,8 +86,8 @@ class PackageManager:
       results[char_name].addMesh(asset_file)
     return results
 
-  def dumpTarget(self, target:str) -> List[str]:
-    forward_options = [self.umodel, "-list", "-dump"] + self.std_ops
+  def dumpTarget(self, target:str):
+    forward_options = [self.umodel, "-list"] + self.std_ops
     options = forward_options + [target]
 
     result = runProcess(options, True)
@@ -95,24 +95,11 @@ class PackageManager:
     if not result or stdout is None:
       raise Exception(EXPORT_MSG)
 
-    return [line.split('.')[-1].strip(r"\'") for line in stdout.split("\n") if line.strip()[:11] == "Material = " ]
-
-  def exportTarget(self, out:Path, target:str) -> List[str]:
-    forward_options = [self.umodel, "-export", "-png", "-dump", f"-out={out.as_posix()}"] + self.std_ops
+  def exportTarget(self, out:Path, target:str):
+    forward_options = [self.umodel, "-export", "-png" f"-out={out.as_posix()}"] + self.std_ops
     options = forward_options + [target]
 
     result = runProcess(options, True)
     stdout = result()
     if not result or stdout is None:
       raise Exception(EXPORT_MSG)
-
-    return [line.split('.')[-1].strip(r"\'") for line in stdout.split("\n") if line.strip()[:11] == "Material = " ]
-
-  def ensureAssetInfo(self, work:Path, asset_name:str):
-    full_asset_name = "/RED/Content/" + asset_name
-    info_path = work.joinpath(Constants.DUMP_SUBDIR + asset_name + Constants.INFO_SFX)
-    if not info_path.exists():
-      info_path.parent.mkdir(parents=True, exist_ok=True)
-      slot_info = self.dumpTarget(full_asset_name)
-      with open(info_path,'w') as info_file:
-        info_file.write( "MaterialSlots: " +", ".join(slot_info) )

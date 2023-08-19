@@ -1,11 +1,12 @@
 from PySide6 import QtCore
 from pathlib import Path
 import shutil
+import json
 
 from .ConfigView import ConfigWidget
 from .Widgets import PathWidget, TextWidget
 from .UModelDriver import PackageManager
-from .Constants import UNREAL_HOOK, BLENDER_HOOK, UNREAL_TEMPLATE
+from .Constants import UNREAL_HOOK, BLENDER_HOOK, UNREAL_TEMPLATE, INFO_SFX, DUMP_SUBDIR
 from .Process import runProcess
 
 
@@ -44,6 +45,34 @@ class FastExportSignals(QtCore.QObject):
 
 
 class FastExportSession(QtCore.QRunnable):
+  def dumpAssetInfo(self) -> Path:
+    asset_dump = self.config.work().joinpath(DUMP_SUBDIR, self.asset_stub)
+    json_path = asset_dump.joinpath(self.asset_name + ".json")
+    info_path = asset_dump.joinpath(self.asset_name + INFO_SFX)
+
+    options = [ 
+      self.config.ue4exp().as_posix(), 
+      self.config.pak().as_posix(),
+      "RED/Content/"+self.asset_path,
+      json_path.as_posix(),
+      self.config.aes()
+    ]
+
+    dump_result = runProcess(options)
+    if not dump_result or not json_path.exists():
+      raise Exception("Bad Target. Failed to dump info for the target asset, it may not exist.")
+
+    raw_json = json.load(open(json_path.as_posix()))
+    slot_indicies = raw_json["Properties"]["LODInfo"][0]["OutlineMaterialIndex"]
+    slot_names = [ mat["ObjectName"].split("'")[1] for mat in raw_json["Materials"] ]
+
+    info_file = open(info_path.as_posix(),'w')
+    info_file.write( ",".join(slot_names) + "\n")
+    info_file.write( ",".join(f"{name}:{idx}" for name,idx in zip(slot_names, slot_indicies)))
+    
+
+    return info_path
+
   def exportBlender(self, target_project:Path) -> Path:
     fbx_src = self.config.fastBlenderRoot().joinpath(f"{self.asset_name}.fbx")
     if fbx_src.exists(): fbx_src.unlink() # delete pre-existing
@@ -80,7 +109,7 @@ class FastExportSession(QtCore.QRunnable):
     src = UNREAL_TEMPLATE
     shutil.copy(UNREAL_TEMPLATE, ue_proj)
 
-  def importUnreal(self, fbx_src:Path):
+  def importUnreal(self, fbx_src:Path, info_path:Path):
     ue_content = self.config.fastUnrealContent()
     ue_chara = ue_content.joinpath("Chara")
     if ue_chara.exists(): rm_tree(ue_chara)
@@ -91,7 +120,7 @@ class FastExportSession(QtCore.QRunnable):
       self.config.unreal().as_posix(), 
       self.config.fastUnrealUproj().as_posix(), 
       "-stdout", "-nullrhi", "-unattended", "-nopause", "-nosplash", 
-      f'-ExecutePythonScript="{UNREAL_HOOK} {fbx_src.as_posix()} {self.asset_stub}"' 
+      f'-ExecutePythonScript="{UNREAL_HOOK} {fbx_src.as_posix()} {self.asset_stub} {info_path.as_posix()}"' 
     ])
     unreal_result = runProcess(options, True)
     unreal_stdout = unreal_result()
@@ -174,18 +203,12 @@ class FastExportSession(QtCore.QRunnable):
   def run(self):
     try:
       self.signals.progress.emit(0, "Validating Asset Info")
-      manager = PackageManager(self.config.umodel(), self.config.pak(), self.config.aes())
-      manager.ensureAssetInfo(self.config.work(), self.asset_path)
-    except:
-      self.signals.error.emit("Bad Target. Failed to dump info for the target asset, it may not exist.")
-      return
-
-    try:
+      info_path = self.dumpAssetInfo()
       self.signals.progress.emit(1, "Exporting Blender Project to FBX")
       fbx_src = self.exportBlender(self.blender_target)
       self.signals.progress.emit(2, "Importing FBX into Unreal Engine")
       self.setupUnreal()
-      self.importUnreal(fbx_src)
+      self.importUnreal(fbx_src, info_path)
       self.signals.progress.emit(3, "Cooking Unreal project")
       uasset_src, uexp_src = self.cookUnreal()
       self.signals.progress.emit(4, "Packing mod")
