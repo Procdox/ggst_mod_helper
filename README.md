@@ -5,6 +5,7 @@ This tool requires
 - A valid GGST installation
 - Umodel installation (modified preferred)
 - Noesis
+- UE4Export https://github.com/Procdox/Ue4Export/releases
 - UE Packer
 - Blender 3.0.0
 - Unreal 4.25 (modified preferred)
