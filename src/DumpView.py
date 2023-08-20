@@ -212,7 +212,7 @@ class DumpWidget(QtWidgets.QWidget):
     manager = PackageManager(umodel_path, pak_path, aes_key)
 
     for target in self.targets:
-      slot_info = manager.exportTarget(dump_dir, target.file)
+      manager.exportTarget(dump_dir, target.file)
       stub_name = dump_dir.joinpath("/".join(target.file.split("/")[3:])).as_posix()[:-7]
       psk_path = stub_name + ".psk"
       fbx_path = stub_name + ".fbx"

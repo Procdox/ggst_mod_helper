@@ -2,6 +2,7 @@ from PySide6 import QtCore
 from pathlib import Path
 import shutil
 import json
+from typing import Tuple, List
 
 from .ConfigView import ConfigWidget
 from .Widgets import PathWidget, TextWidget
@@ -63,17 +64,23 @@ class FastExportSession(QtCore.QRunnable):
       raise Exception("Bad Target. Failed to dump info for the target asset, it may not exist.")
 
     raw_json = json.load(open(json_path.as_posix()))
-    slot_indicies = raw_json["Properties"]["LODInfo"][0]["OutlineMaterialIndex"]
     slot_names = [ mat["ObjectName"].split("'")[1] for mat in raw_json["Materials"] ]
+
+    slot_types = [-1 for _ in slot_names]
+    omis = raw_json["Properties"]["LODInfo"][0]["OutlineMaterialIndex"]
+    sections = raw_json["LODModels"][0]["Sections"]
+    for section_type, section in zip(omis, sections):
+      mat_idx = int(section["MaterialIndex"])
+      slot_types[mat_idx] = int(section_type)
 
     info_file = open(info_path.as_posix(),'w')
     info_file.write( ",".join(slot_names) + "\n")
-    info_file.write( ",".join(f"{name}:{idx}" for name,idx in zip(slot_names, slot_indicies)))
+    info_file.write( ",".join(f"{name}:{idx}" for name,idx in zip(slot_names, slot_types)))
     
 
     return info_path
 
-  def exportBlender(self, target_project:Path) -> Path:
+  def exportBlender(self, target_project:Path) -> Tuple[Path,str]:
     fbx_src = self.config.fastBlenderRoot().joinpath(f"{self.asset_name}.fbx")
     if fbx_src.exists(): fbx_src.unlink() # delete pre-existing
     
@@ -98,8 +105,13 @@ class FastExportSession(QtCore.QRunnable):
     
     if not fbx_src.exists():
       raise Exception(f"Blender FBX Export Failed. Blender appeared to run correctly, but the exported FBX was not found")
+
+    chunks_raw = [line[9:] for line in blender_stdout.split("\n") if line[:9] == "CHUNKING:"]
+    print(chunks_raw)
+    assert len(chunks_raw) == 1
+    print("Chunks:", [int(x) for x in chunks_raw[0].split(",")])
     
-    return fbx_src
+    return fbx_src, chunks_raw[0]
   
   def setupUnreal(self):
     ue_proj = self.config.fastUnrealUproj()
@@ -109,7 +121,7 @@ class FastExportSession(QtCore.QRunnable):
     src = UNREAL_TEMPLATE
     shutil.copy(UNREAL_TEMPLATE, ue_proj)
 
-  def importUnreal(self, fbx_src:Path, info_path:Path):
+  def importUnreal(self, fbx_src:Path, info_path:Path, chunks:str):
     ue_content = self.config.fastUnrealContent()
     ue_chara = ue_content.joinpath("Chara")
     if ue_chara.exists(): rm_tree(ue_chara)
@@ -120,7 +132,7 @@ class FastExportSession(QtCore.QRunnable):
       self.config.unreal().as_posix(), 
       self.config.fastUnrealUproj().as_posix(), 
       "-stdout", "-nullrhi", "-unattended", "-nopause", "-nosplash", 
-      f'-ExecutePythonScript="{UNREAL_HOOK} {fbx_src.as_posix()} {self.asset_stub} {info_path.as_posix()}"' 
+      f'-ExecutePythonScript="{UNREAL_HOOK} {fbx_src.as_posix()} {self.asset_stub} {info_path.as_posix()} {chunks}"' 
     ])
     unreal_result = runProcess(options, True)
     unreal_stdout = unreal_result()
@@ -205,10 +217,10 @@ class FastExportSession(QtCore.QRunnable):
       self.signals.progress.emit(0, "Validating Asset Info")
       info_path = self.dumpAssetInfo()
       self.signals.progress.emit(1, "Exporting Blender Project to FBX")
-      fbx_src = self.exportBlender(self.blender_target)
+      fbx_src, chunks = self.exportBlender(self.blender_target)
       self.signals.progress.emit(2, "Importing FBX into Unreal Engine")
       self.setupUnreal()
-      self.importUnreal(fbx_src, info_path)
+      self.importUnreal(fbx_src, info_path, chunks)
       self.signals.progress.emit(3, "Cooking Unreal project")
       uasset_src, uexp_src = self.cookUnreal()
       self.signals.progress.emit(4, "Packing mod")

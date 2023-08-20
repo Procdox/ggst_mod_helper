@@ -96,10 +96,9 @@ class PackageManager:
       raise Exception(EXPORT_MSG)
 
   def exportTarget(self, out:Path, target:str):
-    forward_options = [self.umodel, "-export", "-png" f"-out={out.as_posix()}"] + self.std_ops
+    forward_options = [self.umodel, "-export", "-png", f"-out={out.as_posix()}"] + self.std_ops
     options = forward_options + [target]
 
-    result = runProcess(options, True)
-    stdout = result()
-    if not result or stdout is None:
+    result = runProcess(options)
+    if not result:
       raise Exception(EXPORT_MSG)

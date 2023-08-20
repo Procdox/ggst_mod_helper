@@ -23,10 +23,13 @@ def ImportAssets(src_path, dest_path):
   task.save = True
   assetTools.import_asset_tasks([task])
 
-def SetOutline(dest_path, info_path):
+def SetOutline(dest_path, info_path, chunks_raw):
   parts = [ part.split(":") for part in open(info_path).readlines()[1].split(",") ]
   idx_assocs = { key.lower():int(val) for key,val in parts }
+  chunks = [int(x) for x in chunks_raw.split(",")]
+
   unreal.log_warning(idx_assocs)
+  unreal.log_warning(chunks)
 
   EAL = unreal.EditorAssetLibrary()
   for assetPath in EAL.list_assets(dest_path):
@@ -34,9 +37,10 @@ def SetOutline(dest_path, info_path):
     if isinstance(asset, unreal.SkeletalMesh):
       result = []
       materials = asset.materials
-      for mat in materials:
+      for c, mat in zip(chunks, materials):
         mat_name = mat.material_slot_name
-        result.append(idx_assocs[str(mat_name).lower()])
+        slot_type = idx_assocs[str(mat_name).lower()]
+        result += [slot_type for _ in range(0,c)]
 
       unreal.log_warning(result)
       info = asset.get_editor_property("lod_info")[0]
@@ -48,10 +52,11 @@ def SetOutline(dest_path, info_path):
 src_path = sys.argv[1]
 dest_path = "/Game/" + sys.argv[2]
 info_path = sys.argv[3]
+chunks_raw = sys.argv[4]
 
 try:
   ImportAssets(src_path, dest_path)
-  SetOutline(dest_path, info_path)
+  SetOutline(dest_path, info_path, chunks_raw)
   unreal.log_warning("Successfully exported")
 except Exception as error:
   unreal.log_warning("FAIL: " + str(error))
