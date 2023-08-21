@@ -56,6 +56,10 @@ class BlenderWidget(QtWidgets.QWidget):
     self.mod_field.saveSettings(settings)
 
   def setWorking(self, working:bool):
+    if working:
+      self.config.stashMods()
+    else:
+      self.config.restoreMods()
     self.config.setEnabled(not working)
     self.export_FBX.setEnabled(not working)
     self.export_FBX.setVisible(not working)

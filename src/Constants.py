@@ -10,6 +10,8 @@ MESH_PATH = "/Costume01/Mesh/"
 DUMP_SUBDIR = "dump/"
 INFO_SFX="_details.txt"
 
+MOD_STASH="moved_mods"
+
 FAST_BLENDER_OUT="Blender_Fast_Build"
 FAST_UE_OUT="Unreal_Fast_Build"
 

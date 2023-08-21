@@ -253,7 +253,7 @@ def main():
   selectMesh(target)
   
   # do export
-  addon_utils.enable("io_scene_fbx", default_set=True, persistent=False, handle_error=None)
+  #addon_utils.enable("io_scene_fbx", default_set=True, persistent=False, handle_error=None)
   export_path = work_dir.joinpath(FAST_BLENDER_OUT)
   export_path.mkdir(exist_ok=True)
   export_path = export_path.joinpath(f"{asset_name}.fbx")

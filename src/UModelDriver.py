@@ -4,6 +4,7 @@ from typing import Optional, List, Dict
 
 from . import Constants
 from .Process import runProcess
+from .ConfigView import ConfigWidget
 
 CLEAN_WHITESPACE = re.compile(r'\s+')
 
@@ -100,5 +101,4 @@ class PackageManager:
     options = forward_options + [target]
 
     result = runProcess(options)
-    if not result:
-      raise Exception(EXPORT_MSG)
+    return result.success

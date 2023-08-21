@@ -6,7 +6,6 @@ from typing import Tuple, List
 
 from .ConfigView import ConfigWidget
 from .Widgets import PathWidget, TextWidget
-from .UModelDriver import PackageManager
 from .Constants import UNREAL_HOOK, BLENDER_HOOK, UNREAL_TEMPLATE, INFO_SFX, DUMP_SUBDIR
 from .Process import runProcess
 

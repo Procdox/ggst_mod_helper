@@ -101,18 +101,6 @@ class DumpWidget(QtWidgets.QWidget):
       button = self.character_list.item(row,0)
       button.setCheckState(QtCore.Qt.CheckState.Checked)
 
-  def checkMods(self, work_path:Path, pak_path:Path):
-    actual_mod_path = pak_path.joinpath("~mods")
-    safe_mod_path = work_path.joinpath("moved_mod")
-    safe_mod_path.mkdir(exist_ok=True)
-
-    if actual_mod_path.exists() and any(actual_mod_path.iterdir()):
-      do_mod_move = showWarning("Found mods", f"Would you like to move mods and explore the raw game files?\nMods will be moved to {safe_mod_path}", True)
-      if do_mod_move:
-        for mod_entry in actual_mod_path.iterdir():
-          target = safe_mod_path.joinpath(mod_entry.name)
-          print(f"Move Mod: {mod_entry} -> {target}")
-          #mod_entry.rename(target)
 
   @QtCore.Slot()
   def scanChars(self):
@@ -131,13 +119,15 @@ class DumpWidget(QtWidgets.QWidget):
     aes_key = self.config.aes()
 
     pak_path = ggst_path.parent.joinpath(Constants.PAK_LOC)
-    self.checkMods(work_path,pak_path)
+    self.config.stashMods()
     
     manager = PackageManager(umodel_path, pak_path, aes_key)
     try:
       self.char_info = manager.getCharacterInfo()
+      self.config.restoreMods()
     except:
       showWarning("Scan Issue", "An issue occured while scanning, check error.log for details.", False)
+      self.config.restoreMods()
       return
     
     self.character_list.setRowCount(len(self.char_info))
@@ -205,26 +195,33 @@ class DumpWidget(QtWidgets.QWidget):
     aes_key = self.config.aes()
 
     pak_path = self.config.pak()
-    self.checkMods(work_path,pak_path)
+    self.config.stashMods()
 
     dump_dir = work_path.joinpath("dump")
 
     manager = PackageManager(umodel_path, pak_path, aes_key)
 
     for target in self.targets:
-      manager.exportTarget(dump_dir, target.file)
+      success = manager.exportTarget(dump_dir, target.file)
+      if not success:
+        stop = showWarning("Export Issue", "An issue occured while exporting, check error.log for details.\nContinue Exporting?", True)
+        if not stop:
+          break
+        continue
+
       stub_name = dump_dir.joinpath("/".join(target.file.split("/")[3:])).as_posix()[:-7]
       psk_path = stub_name + ".psk"
       fbx_path = stub_name + ".fbx"
 
       options = [f'"{noesis_path.as_posix()}"', "?cmode", f'"{psk_path}"', f'"{fbx_path}"', "-fbxnewexport", "-rotate 90 0 0"]
       
-      result = runProcess(" ".join(options))
-      if not result:
+      success = runProcess(" ".join(options))
+      if not success:
         stop = showWarning("Export Issue", "An issue occured while exporting, check error.log for details.\nContinue Exporting?", True)
         if not stop:
           break
-        
+
+    self.config.restoreMods()
 
   def loadSettings(self, settings):
     self.body_mesh.loadSettings(settings)

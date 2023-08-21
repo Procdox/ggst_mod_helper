@@ -17,6 +17,14 @@ UE_PACK_EXE="UnrealPak.exe"
 DEFAULT_GGST_PATH="C:/Program Files (x86)/Steam/steamapps/common/GUILTY GEAR STRIVE/" + GGST_EXE
 DEFAULT_BLENDER_PATH="C:/Program Files/Blender Foundation/Blender 3.4/" + BLENDER_EXE
 
+def rm_tree(pth:Path):
+  for child in pth.glob('*'):
+    if child.is_file():
+      child.unlink()
+    else:
+      rm_tree(child)
+  pth.rmdir()
+
 def validateGGST(value:Path) -> bool:
   pak_path = value.parent.joinpath(Constants.PAK_LOC)
   if not pak_path.exists():
@@ -68,6 +76,9 @@ class ConfigWidget(QtWidgets.QWidget):
     layout.addWidget(self.unverum_field)
     layout.addWidget(self.work_field)
     layout.addWidget(self.aes_field)
+
+    self.mods_are_stashed = False
+    self.wants_mods_stashed = None
   
   def validate(self) -> bool:
     safe = True
@@ -118,6 +129,32 @@ class ConfigWidget(QtWidgets.QWidget):
     return self.work().joinpath(Constants.FAST_UE_OUT, "Content")
   def fastUnrealCooked(self) -> Path:
     return self.work().joinpath(Constants.FAST_UE_OUT, "Saved/Cooked/WindowsNoEditor/Unreal_Fast_Build/Content")
+  
+  def stashMods(self):
+    game_mods = self.pak().joinpath("~mods")
+    stashed_mods = self.work().joinpath(Constants.MOD_STASH)
+
+    if not game_mods.exists() or not any(game_mods.iterdir()): return
+
+    if self.wants_mods_stashed is None:
+      self.wants_mods_stashed = showWarning("Found mods", f"Would you like to move mods and explore the raw game files?\nMods will be moved to <work dir>/{Constants.MOD_STASH} and automatically moved back after.", True)
+    
+    if game_mods.exists() and self.wants_mods_stashed and not self.mods_are_stashed:
+      if not stashed_mods.exists(): stashed_mods.mkdir(parents=True)
+      self.mods_are_stashed = True
+      for mod_folder in stashed_mods.iterdir():
+        rm_tree(mod_folder)
+      for mod_folder in game_mods.iterdir():
+        mod_folder.rename(stashed_mods.joinpath(mod_folder.name))
+
+  def restoreMods(self):
+    if not self.mods_are_stashed: return
+    
+    self.mods_are_stashed = False
+    game_mods = self.pak().joinpath("~mods")
+    stashed_mods = self.work().joinpath(Constants.MOD_STASH)
+    for mod_folder in stashed_mods.iterdir():
+      mod_folder.rename(game_mods.joinpath(mod_folder.name))
   
   def loadSettings(self, settings):
     self.ggst_field.loadSettings(settings)
