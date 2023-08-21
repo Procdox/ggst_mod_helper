@@ -94,7 +94,7 @@ def guessChunks(target:bpy.types.Object):
       chunks_needed.append(1)
       continue
     print(f"Calculating: {idx}")
-    vert_nums = [v.index for v in verts]
+    vert_nums = set(v.index for v in verts)
 
     chunks:List[Set[int]] = []
 
