@@ -15,7 +15,6 @@ MOD_STASH="moved_mods"
 FAST_BLENDER_OUT="Blender_Fast_Build"
 FAST_UE_OUT="Unreal_Fast_Build"
 
-BLENDER_VERSION="Blender 3.4.0"
 UNREAL_VERSION=""
 
 if getattr(sys, 'frozen', False):

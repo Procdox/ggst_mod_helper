@@ -1,47 +1,8 @@
 from PySide6 import QtCore, QtWidgets, QtGui
-from typing import Optional, Callable, Union
+from typing import Optional, Callable
 from pathlib import Path
-import subprocess
 
-ERROR_LOG = Path(".").joinpath("error.log")
-ERROR_DELIM = "\n--------------------------------------------------\n"
-
-def cleanSTD(dirty:Union[str,bytes]):
-  if isinstance(dirty,bytes):
-    dirty = dirty.decode()
-  return dirty.replace("\r\n","\n")
-
-def dumpError(error: Exception):
-  print(error)
-  with open(ERROR_LOG,'a') as error_log:
-    error_log.write( f"{ERROR_DELIM}Error:\n{str(error)}" )
-
-def dumpProcessOut(message:str, info:subprocess.CompletedProcess):
-  with open(ERROR_LOG,'a') as error_log:
-    error_log.write( f"{ERROR_DELIM}{message}\n----- STDOUT: -----\n" )
-    error_log.write( cleanSTD(info.stdout) )
-    error_log.write( "\n----- STDERR: -----\n" )
-    error_log.write( cleanSTD(info.stderr) )
-
-def dumpString(message:str):
-  with open(ERROR_LOG,'a') as error_log:
-    error_log.write( f"{ERROR_DELIM}{message}\n" )
-
-
-
-
-"""
-def safeProcess(msg, options:Union[List[str],str], returnOut:bool = True, cwd:Optional[str]=None, shell=False) -> str:
-  info = subprocess.run(options, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, shell=shell)
-  if info.returncode != 0: 
-    logmsg = f"{msg}:\n'{' '.join(options)}'"
-    dumpProcessOut(logmsg, info)
-    raise Exception
-  if returnOut:
-    return cleanSTD(info.stdout)
-  else:
-    return ""
-"""
+from .Process import ReturnCode
 
 def showWarning(title:str, msg:str, ask:bool) -> bool:
   warning = QtWidgets.QMessageBox()
@@ -55,8 +16,11 @@ def showWarning(title:str, msg:str, ask:bool) -> bool:
 
   return (rcode == roles.Yes) if ask else True
 
+PathValFunc=Callable[[Path],ReturnCode[str]]
+StrValFunc=Callable[[str],ReturnCode[str]]
+
 class PathWidget(QtWidgets.QWidget):
-  def __init__(self, settings_name:str, file_filter:Optional[str]=None, settings_default:str="", validator:Optional[Callable[[Path],bool]]=None, is_dir:bool=False):
+  def __init__(self, settings_name:str, file_filter:Optional[str]=None, settings_default:str="", validator:Optional[PathValFunc]=None, is_dir:bool=False):
     super().__init__()
 
     self.settings_name = settings_name
@@ -90,29 +54,31 @@ class PathWidget(QtWidgets.QWidget):
   def saveSettings(self, settings:QtCore.QSettings):
     settings.setValue(self.settings_name, self.text_field.text())
 
-  def _validate(self) -> bool: 
+  def _validate(self, warn:bool=True) -> ReturnCode[str]: 
     if len(self.text_field.text()) == 0:
-      return False
+      return ReturnCode(False, "Invalid empty path")
     if not self.value.exists():
-      return False
-    if self.validator is not None and not self.validator(self.value):
-      return False
+      return ReturnCode(False, "Path does not exist")
+    if self.validator is not None:
+      return self.validator(self.value)
 
-    return True
+    return ReturnCode(True)
 
-  def updateValue(self) -> bool:
+  def updateValue(self) -> ReturnCode[str]:
     raw_text = self.text_field.text()
     self.value = Path(raw_text)
 
-    if self._validate():
+    rcode = self._validate()
+    if rcode:
       palette = QtGui.QPalette()
       self.text_field.setPalette(palette)
-      return True
+      self.text_field.setToolTip("")
     else:
       palette = self.text_field.palette()
-      palette.setColor(QtGui.QPalette.ColorRole.Base, QtGui.QColor('red'))
+      palette.setColor(QtGui.QPalette.ColorRole.Base, QtGui.QColor('yellow'))
       self.text_field.setPalette(palette)
-      return False
+      self.text_field.setToolTip(rcode.value or "")
+    return rcode
 
   @QtCore.Slot()
   def browse(self):
@@ -131,7 +97,7 @@ class PathWidget(QtWidgets.QWidget):
       self.updateValue()
 
 class TextWidget(QtWidgets.QWidget):
-  def __init__(self, settings_name:str, settings_default:str="", validator:Optional[Callable[[str],bool]]=None):
+  def __init__(self, settings_name:str, settings_default:str="", validator:Optional[StrValFunc]=None):
     super().__init__()
 
     self.settings_name = settings_name
@@ -160,26 +126,29 @@ class TextWidget(QtWidgets.QWidget):
   def saveSettings(self, settings:QtCore.QSettings):
     settings.setValue(self.settings_name, self.text_field.text())
 
-  def _validate(self) -> bool: 
+  def _validate(self) -> ReturnCode[str]: 
     if len(self.value) == 0:
-      return False
-    if self.validator is not None and not self.validator(self.value):
-      return False
+      return ReturnCode(False, "Invalid empty path")
+    if self.validator is not None:
+      return self.validator(self.value)
 
-    return True
+    return ReturnCode(True)
 
   @QtCore.Slot()
-  def updateValue(self) -> bool:
+  def updateValue(self) -> ReturnCode[str]:
     self.value = self.text_field.text()
-    if self._validate():
+
+    rcode = self._validate()
+    if rcode:
       palette = QtGui.QPalette()
       self.text_field.setPalette(palette)
-      return True
+      self.text_field.setToolTip("")
     else:
       palette = self.text_field.palette()
       palette.setColor(QtGui.QPalette.ColorRole.Base, QtGui.QColor('red'))
       self.text_field.setPalette(palette)
-      return False
+      self.text_field.setToolTip(rcode.value or "")
+    return rcode
 
 class CheckBox(QtWidgets.QCheckBox):
   def __init__(self, settings_name:str, settings_default:bool = False):

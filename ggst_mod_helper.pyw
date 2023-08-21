@@ -6,7 +6,7 @@ from typing import Optional, Callable, List, Union, Tuple, NamedTuple, Dict, Set
 
 from src.ConfigView import ConfigWidget
 from src.DumpView import DumpWidget
-from src.BlenderView import BlenderWidget
+from src.FastPakView import FastPakWidget
 from src.DebugView import DebugWidget
 
 from src.Constants import WINDOW_TITLE
@@ -34,7 +34,7 @@ class MainWindow(QtWidgets.QMainWindow):
     self.tabs = [
       ("Config", config),
       ("Dump From Game", DumpWidget(config)),
-      ("Fast Package Blender", BlenderWidget(config)),
+      ("Fast Package Blender", FastPakWidget(config)),
     ]
 
     if False:

@@ -53,18 +53,17 @@ class CharManifest:
       self.other_meshes.append(mesh)
 
 class PackageManager:
-  def __init__(self, umodel:Path, pak:Path, aes:Optional[str]=None):
-    self.umodel = umodel.as_posix()
-    self.std_ops = ['-game=ue4.25', f'-path={pak.as_posix()}']
-    if aes is not None:
-      self.std_ops.append(f'-aes={aes}')
+  def __init__(self, config:ConfigWidget):
+    self.umodel = config.umodel.as_posix()
+    self.std_ops = [self.umodel, '', '-game=ue4.25', f'-path={config.pak().as_posix()}', f'-aes={config.aes()}']
 
-  def buildCommand(self, cmd):
-    return [self.umodel, f"-{cmd}"] + self.std_ops
+  def buildCommand(self, cmd:str, other:List[str]):
+    options = self.std_ops + other
+    options[1] = f"-{cmd}"
+    return options
 
   def getPackageObjects(self, obj:str) -> List[AssetFile]:
-    options = self.buildCommand("list")
-    options.append(obj)
+    options = self.buildCommand('list', [obj])
 
     result = runProcess(options, True)
     stdout = result()
@@ -88,8 +87,7 @@ class PackageManager:
     return results
 
   def dumpTarget(self, target:str):
-    forward_options = [self.umodel, "-list"] + self.std_ops
-    options = forward_options + [target]
+    options = self.buildCommand('list', [target])
 
     result = runProcess(options, True)
     stdout = result()
@@ -97,8 +95,7 @@ class PackageManager:
       raise Exception(EXPORT_MSG)
 
   def exportTarget(self, out:Path, target:str):
-    forward_options = [self.umodel, "-export", "-png", f"-out={out.as_posix()}"] + self.std_ops
-    options = forward_options + [target]
+    options = self.buildCommand('export', ["-png", f"-out={out.as_posix()}", target])
 
     result = runProcess(options)
     return result.success

@@ -3,12 +3,12 @@ name: Build Release
 on:
   push:
     branches: [ "main" ]
-    paths-ignore:
-      - '**/README.md'
+    paths:
+      - '**/build_app.yml'
   pull_request:
     branches: [ "main" ]
-    paths-ignore:
-      - '**/README.md'
+    paths:
+      - '**/build_app.yml'
 
 permissions:
   contents: write
@@ -38,8 +38,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
-        tag_name: 1.0.3
-        release_name: Release 1.0.3
+        tag_name: 1.0.4
+        release_name: Release 1.0.4
     - name: push exe to release
       uses: actions/upload-release-asset@v1
       env:

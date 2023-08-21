@@ -4,23 +4,23 @@ from pathlib import Path
 from .ConfigView import ConfigWidget
 from .Widgets import showWarning, PathWidget, TextWidget
 from .ExportDriver import FastExportSession, cleanAsset
+from .Process import ReturnCode
 
 BAD_SYMBOLS=["..", "*", "?", ",", "'", "\""]
+BAD_SYMBOLS_STR = ' '.join(BAD_SYMBOLS)
 
-def validateAsset(value:str):
+def validateAsset(value:str) -> ReturnCode[str]:
   if cleanAsset(value) is None:
-    showWarning("Invalid Target Asset", "Target Asset must be relative to Pak Content e.g. Chara/RAM/Costume01/Mesh/ram_body\n/RED/Content/ prefix and the file suffix are optional", False)
-    return False
+    return ReturnCode(False, "Target Asset must be relative to Pak Content e.g. Chara/RAM/Costume01/Mesh/ram_body\n/RED/Content/ prefix and the file suffix are optional")
   if value.find("\\") > 1:
     showWarning("Invalid Target Asset", "Target Asset contains a '\\' or '\\\\', please use posix styled '/' paths instead ", False)
-    return False
+    return ReturnCode(False, "Target Asset contains a '\\' or '\\\\', please use posix styled '/' paths instead ")
   for symbol in BAD_SYMBOLS:
     if value.find(symbol) > -1:
-      showWarning("Invalid Target Asset", f"Target Asset contains a '{symbol}', it and the following characters are prohibited:\n {' '.join(BAD_SYMBOLS)}", False)
-      return False
-  return True
+      ReturnCode(False, f"Target Asset contains a '{symbol}', it and the following characters are prohibited:\n {BAD_SYMBOLS_STR}")
+  return ReturnCode(True)
 
-class BlenderWidget(QtWidgets.QWidget):
+class FastPakWidget(QtWidgets.QWidget):
   def __init__(self, config:ConfigWidget):
     super().__init__()
 

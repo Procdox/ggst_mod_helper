@@ -200,15 +200,15 @@ class FastExportSession(QtCore.QRunnable):
     # ----- Config and Target Validation -----
     if not config.validate():
       raise Exception("Bad Config. Please verify your install paths and aes key.")
-    if not blender_target.updateValue():
-      raise Exception("Bad Target. Please verify your target blender project.")
-    if not asset_target.updateValue():
-      raise Exception("Bad Target. Please verify your target asset.")
+    if not (rcode := blender_target.updateValue()):
+      raise Exception(f"Bad Target. Please verify your target blender project:\n{rcode.value}")
+    if not (rcode := asset_target.updateValue()):
+      raise Exception(f"Bad Target. Please verify your target asset:\n{rcode.value}")
     asset_path = cleanAsset(asset_target.value)
     if asset_path is None:
       raise Exception("Bad Target. Something is wrong with your target asset. How the hell did you get here!?")
-    if not mod_name.updateValue():
-      raise Exception("Bad Target. Please verify your target mod name.")
+    if not (rcode := mod_name.updateValue()):
+      raise Exception(f"Bad Target. Please verify your target mod name:\n{rcode.value}")
     
     self.config = config
     self.output = None

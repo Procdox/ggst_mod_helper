@@ -1,8 +1,9 @@
 from PySide6 import QtWidgets
 from pathlib import Path
+from typing import List, Union
 
 from .Widgets import PathWidget, TextWidget, showWarning
-from .Process import runProcess
+from .Process import runProcess, ReturnCode
 from . import Constants
 
 GGST_EXE="GGST.exe"
@@ -25,30 +26,32 @@ def rm_tree(pth:Path):
       rm_tree(child)
   pth.rmdir()
 
-def validateGGST(value:Path) -> bool:
+def validateGGST(value:Path) -> ReturnCode[str]:
   pak_path = value.parent.joinpath(Constants.PAK_LOC)
   if not pak_path.exists():
-    showWarning("Missing Content", "Failed to find GGST Pak, please verify your GGST path", False)
-    return False
-  return True
+    return ReturnCode(False, "Failed to find GGST Pak")
+  return ReturnCode(True)
 
-def validateBlender(value:Path) -> bool:
+def validateBlender(value:Path) -> ReturnCode[str]:
   blender_result = runProcess([value.as_posix(), "--version"])
   blender_stdout = blender_result()
   if not blender_result or blender_stdout is None or len(blender_stdout) == None:
-    showWarning("Blender problem", f"Failed to validate chosen Blender install", False)
-    return False
-  version = blender_stdout.split("\n")[0]
-  if version != Constants.BLENDER_VERSION:
-    showWarning("Blender problem", f"Expected version: {Constants.BLENDER_VERSION}, Found Version: {version}", False)
-    return False
-  return True
+    return ReturnCode(False, "Failed to validate chosen Blender install")
+  first_line = blender_stdout.split("\n")[0]
+  raw_version = first_line.split(" ")[1]
+  full_version = [int(x) for x in raw_version.split(".")]
+  major_version = full_version[0]
+  if major_version < 3:
+    return ReturnCode(False, f"Expected at least version 3.0.0, Found Version: {raw_version}")
+  return ReturnCode(True)
 
-def validateUnreal(value:Path) -> bool:
-  return True
+def validateUnreal(value:Path) -> ReturnCode[str]:
+  return ReturnCode(True)
 
-def validateAES(value:str) -> bool:
-  return value[0:2] == "0x"
+def validateAES(value:str) -> ReturnCode[str]:
+  return ReturnCode(value[0:2] == "0x", "AES must start with '0x'")
+
+field_list = List[Union[PathWidget,TextWidget]]
 
 class ConfigWidget(QtWidgets.QWidget):
   def __init__(self):
@@ -65,33 +68,23 @@ class ConfigWidget(QtWidgets.QWidget):
 
     self.aes_field = TextWidget("AES_Key", validator=validateAES)
 
+    self.all_fields:field_list = [
+      self.ggst_field, self.umodel_field, self.noesis_field, self.ue4exp_field, 
+      self.blender_field, self.unreal_field, self.packer_field, self.unverum_field,
+      self.work_field, self.aes_field
+    ]
+
     layout = QtWidgets.QVBoxLayout(self)
-    layout.addWidget(self.ggst_field)
-    layout.addWidget(self.umodel_field)
-    layout.addWidget(self.noesis_field)
-    layout.addWidget(self.ue4exp_field)
-    layout.addWidget(self.blender_field)
-    layout.addWidget(self.unreal_field)
-    layout.addWidget(self.packer_field)
-    layout.addWidget(self.unverum_field)
-    layout.addWidget(self.work_field)
-    layout.addWidget(self.aes_field)
+    for field in self.all_fields:
+      layout.addWidget(field)
 
     self.mods_are_stashed = False
     self.wants_mods_stashed = None
   
   def validate(self) -> bool:
     safe = True
-    safe = self.ggst_field.updateValue() and safe
-    safe = self.umodel_field.updateValue() and safe
-    safe = self.noesis_field.updateValue() and safe
-    safe = self.ue4exp_field.updateValue() and safe
-    safe = self.blender_field.updateValue() and safe
-    safe = self.unreal_field.updateValue() and safe
-    safe = self.packer_field.updateValue() and safe
-    safe = self.unverum_field.updateValue() and safe
-    safe = self.work_field.updateValue() and safe
-    safe = self.aes_field.updateValue() and safe
+    for field in self.all_fields:
+      safe = field.updateValue().success and safe
     return safe
 
   # Direct accesors
@@ -157,27 +150,11 @@ class ConfigWidget(QtWidgets.QWidget):
       mod_folder.rename(game_mods.joinpath(mod_folder.name))
   
   def loadSettings(self, settings):
-    self.ggst_field.loadSettings(settings)
-    self.umodel_field.loadSettings(settings)
-    self.noesis_field.loadSettings(settings)
-    self.ue4exp_field.loadSettings(settings)
-    self.blender_field.loadSettings(settings)
-    self.unreal_field.loadSettings(settings)
-    self.packer_field.loadSettings(settings)
-    self.unverum_field.loadSettings(settings)
-    self.work_field.loadSettings(settings)
-    self.aes_field.loadSettings(settings)
+    for field in self.all_fields:
+      field.loadSettings(settings)
 
   def saveSettings(self, settings):
-    self.ggst_field.saveSettings(settings)
-    self.umodel_field.saveSettings(settings)
-    self.noesis_field.saveSettings(settings)
-    self.ue4exp_field.saveSettings(settings)
-    self.blender_field.saveSettings(settings)
-    self.unreal_field.saveSettings(settings)
-    self.packer_field.saveSettings(settings)
-    self.unverum_field.saveSettings(settings)
-    self.work_field.saveSettings(settings)
-    #self.aes_field.saveSettings(settings)
+    for field in self.all_fields:
+      field.saveSettings(settings)
 
 

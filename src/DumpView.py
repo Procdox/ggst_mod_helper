@@ -113,15 +113,9 @@ class DumpWidget(QtWidgets.QWidget):
       showWarning("Bad Config", "Please verify your paths and aes key first", False)
       return
 
-    ggst_path = self.config.ggst()
-    umodel_path = self.config.umodel()
-    work_path = self.config.work()
-    aes_key = self.config.aes()
-
-    pak_path = ggst_path.parent.joinpath(Constants.PAK_LOC)
     self.config.stashMods()
     
-    manager = PackageManager(umodel_path, pak_path, aes_key)
+    manager = PackageManager(self.config)
     try:
       self.char_info = manager.getCharacterInfo()
       self.config.restoreMods()
@@ -188,18 +182,14 @@ class DumpWidget(QtWidgets.QWidget):
       showWarning("Nothing to Export", "You haven't selected any meshes to export", False)
       return
 
-    ggst_path = self.config.ggst()
-    umodel_path = self.config.umodel()
     noesis_path = self.config.noesis()
     work_path = self.config.work()
-    aes_key = self.config.aes()
-
-    pak_path = self.config.pak()
+    
     self.config.stashMods()
 
     dump_dir = work_path.joinpath("dump")
 
-    manager = PackageManager(umodel_path, pak_path, aes_key)
+    manager = PackageManager(self.config)
 
     for target in self.targets:
       success = manager.exportTarget(dump_dir, target.file)
