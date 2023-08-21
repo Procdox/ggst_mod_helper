@@ -10,13 +10,8 @@ This tool requires
 - Blender 3.0.0
 - Unreal 4.25 (modified preferred)
 
-With all this, installation can be done by
-1. installing Python (tested with 3.8.10)
-2. python -m venv env
-3. ./env/Scripts/python.exe -m pip install -r requirements.txt
+With all this, you just need to download the latest release!
 
-Then launched with 
-- ./env/Scripts/python.exe ggst_mod_helper.py
 
 ## Configuration
 The first tab of the tool will present you with a bunch op options, fill these out with the paths to the respective tools.
@@ -44,3 +39,10 @@ moved_mods: If the tool detects mods, and you choose to move them, they will be 
 paks: This is where mod directory structures and final .pak are output during the fast package process.
 Unreal_Fast_Build: This is an Unreal project that is used for converting and cooking FBX's during the fast package process.
 
+## Building
+1. installing Python (tested with 3.8.10)
+2. python -m venv env
+3. ./env/Scripts/python.exe -m pip install -r requirements.txt
+
+Then launched with 
+- ./env/Scripts/python.exe ggst_mod_helper.py
