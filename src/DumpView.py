@@ -217,8 +217,9 @@ class DumpWidget(QtWidgets.QWidget):
       psk_path = stub_name + ".psk"
       fbx_path = stub_name + ".fbx"
 
-      options = [noesis_path.as_posix(), "?cmode", psk_path, fbx_path, "-fbxnewexport", "-rotate 90 0 0"]
-      result = runProcess(options)
+      options = [f'"{noesis_path.as_posix()}"', "?cmode", f'"{psk_path}"', f'"{fbx_path}"', "-fbxnewexport", "-rotate 90 0 0"]
+      
+      result = runProcess(" ".join(options))
       if not result:
         stop = showWarning("Export Issue", "An issue occured while exporting, check error.log for details.\nContinue Exporting?", True)
         if not stop:

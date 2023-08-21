@@ -188,6 +188,13 @@ class FastExportSession(QtCore.QRunnable):
     if not Path(pak_src).exists():
       raise Exception(f"Unreal PAK Failed. Unreal PAK appeared to run correctly, but the pak was not found")
     return pak_src
+  
+  def setupUnverumMod(self, pak_src:Path):
+    mod_dir = self.config.unverum().parent.joinpath("Mods/Guilty Gear -Strive-/",self.mod_name)
+    pak_dst = mod_dir.joinpath(self.mod_name + ".pak")
+    if pak_dst.exists(): pak_dst.unlink()
+    mod_dir.mkdir(parents=True,exist_ok=True)
+    pak_src.rename(pak_dst)
 
   def __init__(self, config:ConfigWidget, blender_target:PathWidget, asset_target:TextWidget, mod_name:TextWidget):
     super().__init__()
@@ -225,6 +232,7 @@ class FastExportSession(QtCore.QRunnable):
       uasset_src, uexp_src = self.cookUnreal()
       self.signals.progress.emit(4, "Packing mod")
       self.output = self.pak(uasset_src, uexp_src, self.mod_name)
+      self.setupUnverumMod(self.output)
       self.signals.progress.emit(5, "Finished")
     except Exception as error:
       self.signals.error.emit(str(error))

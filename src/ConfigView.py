@@ -11,10 +11,11 @@ NOESIS_EXE="Noesis.exe"
 UE4EXP_EXE="Ue4Export.exe"
 BLENDER_EXE="blender.exe"
 UNREAL_EXE="UE4Editor-Cmd.exe"
+UNVERUM_EXE="Unverum.exe"
 UE_PACK_EXE="UnrealPak.exe"
 
 DEFAULT_GGST_PATH="C:/Program Files (x86)/Steam/steamapps/common/GUILTY GEAR STRIVE/" + GGST_EXE
-DEFAULT_BLENDER_PATH="C:/Program Files/Blender Foundation/Blender 3.0/" + BLENDER_EXE
+DEFAULT_BLENDER_PATH="C:/Program Files/Blender Foundation/Blender 3.4/" + BLENDER_EXE
 
 def validateGGST(value:Path) -> bool:
   pak_path = value.parent.joinpath(Constants.PAK_LOC)
@@ -51,6 +52,7 @@ class ConfigWidget(QtWidgets.QWidget):
     self.blender_field = PathWidget("Blender_Install", BLENDER_EXE, DEFAULT_BLENDER_PATH, validateBlender)
     self.unreal_field = PathWidget("Unreal_Install", UNREAL_EXE, validator=validateUnreal)
     self.packer_field = PathWidget("UE_Pack_Install", UE_PACK_EXE)
+    self.unverum_field = PathWidget("Unverum_Install", UNVERUM_EXE)
     self.work_field = PathWidget("Working_Dir", is_dir=True)
 
     self.aes_field = TextWidget("AES_Key", validator=validateAES)
@@ -63,6 +65,7 @@ class ConfigWidget(QtWidgets.QWidget):
     layout.addWidget(self.blender_field)
     layout.addWidget(self.unreal_field)
     layout.addWidget(self.packer_field)
+    layout.addWidget(self.unverum_field)
     layout.addWidget(self.work_field)
     layout.addWidget(self.aes_field)
   
@@ -75,6 +78,7 @@ class ConfigWidget(QtWidgets.QWidget):
     safe = self.blender_field.updateValue() and safe
     safe = self.unreal_field.updateValue() and safe
     safe = self.packer_field.updateValue() and safe
+    safe = self.unverum_field.updateValue() and safe
     safe = self.work_field.updateValue() and safe
     safe = self.aes_field.updateValue() and safe
     return safe
@@ -94,6 +98,8 @@ class ConfigWidget(QtWidgets.QWidget):
     return self.unreal_field.value
   def packer(self) -> Path:
     return self.packer_field.value
+  def unverum(self) -> Path:
+    return self.unverum_field.value
   def work(self) -> Path:
     return self.work_field.value
   def aes(self) -> str:
@@ -121,6 +127,7 @@ class ConfigWidget(QtWidgets.QWidget):
     self.blender_field.loadSettings(settings)
     self.unreal_field.loadSettings(settings)
     self.packer_field.loadSettings(settings)
+    self.unverum_field.loadSettings(settings)
     self.work_field.loadSettings(settings)
     self.aes_field.loadSettings(settings)
 
@@ -132,6 +139,7 @@ class ConfigWidget(QtWidgets.QWidget):
     self.blender_field.saveSettings(settings)
     self.unreal_field.saveSettings(settings)
     self.packer_field.saveSettings(settings)
+    self.unverum_field.saveSettings(settings)
     self.work_field.saveSettings(settings)
     #self.aes_field.saveSettings(settings)
 

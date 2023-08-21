@@ -13,7 +13,7 @@ INFO_SFX="_details.txt"
 FAST_BLENDER_OUT="Blender_Fast_Build"
 FAST_UE_OUT="Unreal_Fast_Build"
 
-BLENDER_VERSION="Blender 3.0.0"
+BLENDER_VERSION="Blender 3.4.0"
 UNREAL_VERSION=""
 
 if getattr(sys, 'frozen', False):

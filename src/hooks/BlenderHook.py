@@ -257,7 +257,7 @@ def main():
   export_path = work_dir.joinpath(FAST_BLENDER_OUT)
   export_path.mkdir(exist_ok=True)
   export_path = export_path.joinpath(f"{asset_name}.fbx")
-  bpy.ops.export_scene.fbx(filepath=export_path.as_posix(), check_existing=False, use_selection=True, bake_anim=False)
+  bpy.ops.export_scene.fbx(filepath=export_path.as_posix(), check_existing=False, use_selection=True, bake_anim=False, add_leaf_bones=False)
 
   exit(0)
 
